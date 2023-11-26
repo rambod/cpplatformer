@@ -1,6 +1,17 @@
 #include <iostream>  // Include the input/output stream library
 #include <raylib.h>  // Include the raylib library
 
+
+struct AnimData
+{
+    Rectangle rec;
+    Vector2 pos;
+    int frame;
+    float updateTime;
+    float runningTime;
+};
+
+
 int main() {
     const char *playerTexturePath = "C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\scarfy.png";  // Define a string variable playerTexturePath with a value of "textures/player.png"
     const char *nebulaTexturePath = "C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
@@ -16,6 +27,17 @@ int main() {
     int velocity{0};  // Declare an integer variable velocity and initialize it with 0
 
     Texture2D playerTexture = LoadTexture(playerTexturePath);  // Load the player texture
+    AnimData playerData;  // Declare a variable playerData of type AnimData
+    playerData.rec.width = playerTexture.width / 6;  // Set the width of playerData.rec to 20
+    playerData.rec.height = playerTexture.height;  // Set the height of playerData.rec to 20
+    playerData.rec.x = 0;  // Set the x-coordinate of playerData.rec to 0
+    playerData.rec.y = 0;  // Set the y-coordinate of playerData.rec to 0
+    playerData.pos.x = screenWidth / 2 - playerData.rec.width / 2;  // Calculate the x-coordinate of playerData.pos based on the screen width and playerData.rec width
+    playerData.pos.y = screenHeight - playerData.rec.height;  // Calculate the y-coordinate of playerData.pos based on the screen height and playerData.rec height
+    playerData.frame = 0;  // Set the frame of playerData to 0
+    playerData.updateTime = 1.0f / 12.0f;  // Set the update time of playerData to 1.0f / 12.0f
+    playerData.runningTime = 0.0f;
+
     Rectangle playerRec;  // Declare a variable playerRec of type Rectangle
     playerRec.width = playerTexture.width / 6;  // Set the width of playerRec to 20
     playerRec.height = playerTexture.height;  // Set the height of playerRec to 20
@@ -33,8 +55,31 @@ int main() {
     float runningTime{0.0f};  // Declare a float variable runningTime and initialize it with 0.0f
 
 
+    // Background
+    Texture2D backgroundTexture = LoadTexture("C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\back-buildings.png");  // Load the background texture
+    Rectangle backgroundRec;  // Declare a variable backgroundRec of type Rectangle
+    backgroundRec.width = screenWidth;  // Set the width of backgroundRec to the width of the background texture
+    backgroundRec.height = screenHeight;  // Set the height of backgroundRec to the height of the background texture
+    backgroundRec.x = 0;  // Set the x-coordinate of backgroundRec to 0
+    backgroundRec.y = 0;  // Set the y-coordinate of backgroundRec to 0
+
     // Nebula
     Texture2D nebulaTexture = LoadTexture(nebulaTexturePath);  // Load the nebula texture
+
+    AnimData nebData{
+            .rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8},
+            .pos = {screenWidth, screenHeight - (float)nebulaTexture.height / 8},
+            .frame = 0,
+            .updateTime = 1.0f / 12.0f,
+            .runningTime = 0.0f
+    };
+    AnimData neb2Data{
+            .rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8},
+            .pos = {screenWidth + 300, screenHeight - (float)nebulaTexture.height / 8},
+            .frame = 0,
+            .updateTime = 1.0f / 12.0f,
+            .runningTime = 0.0f
+    };
     Rectangle nebRec;  // Declare a variable nebRec of type Rectangle
     nebRec.width = nebulaTexture.width / 8;  // Set the width of nebRec to the screen width
     nebRec.height = nebulaTexture.height / 8;  // Set the height of nebRec to the screen height
@@ -45,7 +90,7 @@ int main() {
     nebPos.x = screenWidth;  // Calculate the x-coordinate of nebPos based on the screen width and nebRec width
     nebPos.y = screenHeight - nebRec.height;  // Calculate the y-coordinate of nebPos based on the screen height and nebRec height
     int nebFrame{0};  // Declare an integer variable nebFrame and initialize it with 0
-    int nebVelocity{-600};  // Declare an integer variable nevVelocity and initialize it with -600
+    int nebVelocity{-200};  // Declare an integer variable nevVelocity and initialize it with -600
     float nubRunningTime{0.0f};  // Declare a float variable nubRunningTime and initialize it with 0.0f
     float nubUpdateTime{0.12f};  // Declare a float variable nubUpdateTime and initialize it with 0.12f
 
@@ -54,10 +99,13 @@ int main() {
 
     while (!WindowShouldClose()) {  // Start a loop that runs until the window is closed
 
+
         //update
 
         const float deltaTime = GetFrameTime();  // Get the delta time in seconds
         BeginDrawing();  // Begin drawing the graphics
+
+        DrawTextureRec(backgroundTexture, backgroundRec, Vector2{0.0f, 0.0f}, WHITE);
 
         ClearBackground(WHITE);  // Clear the background with the color white
 
@@ -108,18 +156,15 @@ int main() {
 
         //draw
         DrawTextureRec(nebulaTexture, nebRec, nebPos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
-
         nebPos.x += nebVelocity * deltaTime;  // Update the x-coordinate of nebPos based on the delta time
-        if (nebPos.x <= -nebulaTexture.width) {  // Check if the x-coordinate of nebPos is less than or equal to the nebula texture width
-            nebPos.x = screenWidth;  // Set the x-coordinate of nebPos to the screen width
-        }
+
+        //nebula animation frame
         nubRunningTime += deltaTime;
         if(nubRunningTime >= nubUpdateTime){
             nubRunningTime = 0;
             nebRec.x = nebFrame * nebRec.width;
-
             nebFrame++;
-            if(nebFrame > 61){
+            if(nebFrame > 7){
                 nebFrame = 0;
 
             }
