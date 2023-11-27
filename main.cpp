@@ -1,5 +1,5 @@
 #include <iostream>  // Include the input/output stream library
-#include <raylib.h>  // Include the raylib library
+#include <raylib.h> // Include the raylib library
 
 struct AnimData
 {
@@ -11,8 +11,13 @@ struct AnimData
 };
 
 int main() {
-    const char *playerTexturePath = "C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\scarfy.png";  // Define a string variable playerTexturePath with a value of "textures/player.png"
-    const char *nebulaTexturePath = "C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
+
+    // Textures
+//    const char *playerTexturePath = "C:\\Users\\Rambod\\CLionProjects\\cpplatformer\\textures\\scarfy.png";  // Define a string variable playerTexturePath with a value of "textures/player.png"
+    const char* playerTexturePath = "textures/scarfy.png";
+    const char *nebulaTexturePath = "textures/12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
+
+    // Game
     const int screenWidth = 800;
     const int screenHeight = 450;
     InitWindow(screenWidth, screenHeight, "Platformer basics C++");  // Initialize the window with the specified screen width, screen height, and window title
@@ -21,7 +26,7 @@ int main() {
 
     // Player
     const int jumpVelocity{-600};  // Define a constant variable jumpVelocity with a value of -22
-    const int playerSpeed{5};
+    const int playerSpeed{5}; // Define a constant variable playerSpeed with a value of 5
     int velocity{0};  // Declare an integer variable velocity and initialize it with 0
 
     Texture2D playerTexture = LoadTexture(playerTexturePath);  // Load the player texture
@@ -41,7 +46,7 @@ int main() {
 
 
     // Background
-    Texture2D backgroundTexture = LoadTexture("C:\\Users\\rambo\\CLionProjects\\cpplatformer\\textures\\back-buildings.png");  // Load the background texture
+    Texture2D backgroundTexture = LoadTexture("textures/back-buildings.png");  // Load the background texture
     Rectangle backgroundRec;  // Declare a variable backgroundRec of type Rectangle
     backgroundRec.width = screenWidth;  // Set the width of backgroundRec to the width of the background texture
     backgroundRec.height = screenHeight;  // Set the height of backgroundRec to the height of the background texture
