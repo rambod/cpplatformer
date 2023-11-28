@@ -1,6 +1,7 @@
 #include <iostream>  // Include the input/output stream library
 #include <raylib.h> // Include the raylib library
 #include <iterator>
+#include <string>
 
 struct AnimData
 {
@@ -10,6 +11,12 @@ struct AnimData
     float updateTime;
     float runningTime;
 };
+
+// Function to get a random value between 0.9 and 1.1
+float getRandomValue()
+{
+    return 1.1f + static_cast <float> (rand()) / (static_cast <float> (RAND_MAX / (1.1f - 0.9f)));
+}
 
 bool isOnGround(const int screenHeight, const AnimData &playerData) {
     return playerData.pos.y >= (float)screenHeight - playerData.rec.height;
@@ -31,8 +38,19 @@ AnimData &updateAnimData(AnimData &data, const float deltaTime, int maxFrame) {
 int main() {
 
     // Textures
-    const char* playerTexturePath = "textures/scarfy.png";
-    const char *nebulaTexturePath = "textures/12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
+    const char* playerTexturePath = "assets/textures/scarfy.png";
+    const char *nebulaTexturePath = "assets/textures/12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
+
+
+
+    // Audio device
+    InitAudioDevice();
+    //load music
+    Music backgroundMusic  = LoadMusicStream("assets/sounds/music.mp3");
+    Sound jumpSound = LoadSound("assets/sounds/jump.mp3");
+    Sound punchSound = LoadSound("assets/sounds/punch.mp3");
+    Sound hitSound = LoadSound("assets/sounds/hit.mp3");
+    PlayMusicStream(backgroundMusic);
 
     // Game
     const int screenWidth = 750;
@@ -60,9 +78,9 @@ int main() {
 
 
     // Background
-    Texture2D backgroundTexture = LoadTexture("textures/far-buildings.png");  // Load the background texture
-    Texture2D midgroundTexture = LoadTexture("textures/back-buildings.png");  // Load the background texture
-    Texture2D foregroundTexture = LoadTexture("textures/foreground.png");  // Load the background texture
+    Texture2D backgroundTexture = LoadTexture("assets/textures/far-buildings.png");  // Load the background texture
+    Texture2D midgroundTexture = LoadTexture("assets/textures/back-buildings.png");  // Load the background texture
+    Texture2D foregroundTexture = LoadTexture("assets/textures/foreground.png");  // Load the background texture
     float bgx{};  // Declare a float variable bgx and initialize it with 0
     float midgx{};  // Declare a float variable midgx and initialize it with 0
     float fgx{};  // Declare a float variable fgx and initialize it with 0
@@ -76,10 +94,10 @@ int main() {
     Texture2D nebulaTexture = LoadTexture(nebulaTexturePath);  // Load the nebula texture
 
 
-    AnimData nebulae[3]{};
+    AnimData nebulae[20]{};
     for(int i = 0; i < std::size(nebulae); i++){
         nebulae[i].rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8};
-        nebulae[i].pos = {(float)screenWidth + (300 * (float)i), screenHeight - (float)nebulaTexture.height / 8};
+        nebulae[i].pos = {(float)screenWidth + (300 * (float)i * getRandomValue()), screenHeight - (float)nebulaTexture.height / 8};
         nebulae[i].frame = 0;
         nebulae[i].runningTime = 0.0f;
         nebulae[i].updateTime = 1.0f / 16.0f;
@@ -93,6 +111,7 @@ int main() {
     SetTargetFPS(60);  // Set the target frames per second to 60
 
     while (!WindowShouldClose()) {  // Start a loop that runs until the window is closed
+        UpdateMusicStream(backgroundMusic);
 
         //update
         const float deltaTime = GetFrameTime();  // Get the delta time in seconds
@@ -148,6 +167,7 @@ int main() {
             velocity = jumpVelocity;  // Set the velocity to the jump velocity
             bIsPlayerGrounded = false;  // Set bIsPlayerGrounded to false
             bIsPlayerJumping = true;  // Set bIsPlayerJumping to true
+            PlaySound(jumpSound);  // Play the jump sound
         }
         //move
         if(IsKeyDown(KEY_D)){
@@ -190,10 +210,23 @@ int main() {
                 playerData.rec.height
             };
             if(CheckCollisionRecs( playerRec, nebRec)){
-                printf("Collision");
+                PlaySound(hitSound);
                 collision = true;
             }
         }
+        //debug text
+        std::string debugText{
+            "fps: " + std::to_string(GetFPS()) + "\n" +
+            "player x: " + std::to_string(playerData.pos.x) + "\n" +
+            "player y: " + std::to_string(playerData.pos.y) + "\n" +
+            "velocity: " + std::to_string(velocity) + "\n" +
+            "bIsPlayerGrounded: " + std::to_string(bIsPlayerGrounded) + "\n" +
+            "bIsPlayerJumping: " + std::to_string(bIsPlayerJumping) + "\n" +
+            "collision: " + std::to_string(collision) + "\n" +
+            "finishLine: " + std::to_string(finishLine) + "\n" +
+            "nebVelocity: " + std::to_string(nebVelocity) + "\n"
+        };
+        DrawText(debugText.c_str() , screenWidth - 300, 50, 20, WHITE);
         if (collision){
             // lose the game
             DrawText("Game Over", screenWidth / 4, screenHeight / 2, 50, RED);
@@ -229,16 +262,22 @@ int main() {
         EndDrawing();  // End drawing the graphics
     }
 
-    // Unload
+    // Unload the textures
     UnloadTexture(nebulaTexture);  // Unload the nebula texture
     UnloadTexture(backgroundTexture);  // Unload the nebula texture
     UnloadTexture(playerTexture);  // Unload the player texture
     UnloadTexture(midgroundTexture);
     UnloadTexture(foregroundTexture);
+    // Unload the sounds and music
+    UnloadSound(jumpSound);
+    UnloadMusicStream(backgroundMusic);
+    UnloadSound(punchSound);
+    UnloadSound(hitSound);
 
-
+    CloseAudioDevice();
     // Close the window
     CloseWindow();
+
 
     return 0;  // Return 0 to indicate successful program termination
 }
