@@ -110,6 +110,7 @@ int main() {
 
     SetTargetFPS(60);  // Set the target frames per second to 60
 
+
     while (!WindowShouldClose()) {  // Start a loop that runs until the window is closed
         UpdateMusicStream(backgroundMusic);
 
