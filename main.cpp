@@ -27,7 +27,7 @@ int main() {
 
     // Player
     const int jumpVelocity{-600};  // Define a constant variable jumpVelocity with a value of -22
-    const int playerSpeed{5}; // Define a constant variable playerSpeed with a value of 5
+    int playerSpeed{5}; // Define a constant variable playerSpeed with a value of 5
     int velocity{0};  // Declare an integer variable velocity and initialize it with 0
 
     Texture2D playerTexture = LoadTexture(playerTexturePath);  // Load the player texture
@@ -107,6 +107,14 @@ int main() {
         //move
         if(IsKeyDown(KEY_A)){
             playerData.pos.x -= playerSpeed; // Update the player's x-coordinate based on the velocity
+        }
+
+        //run or walk
+        if(IsKeyDown(KEY_LEFT_SHIFT)){
+            playerSpeed = 10; // Update the player's x-coordinate based on the velocity
+        }
+        if(IsKeyReleased(KEY_LEFT_SHIFT)){
+            playerSpeed = 5; // Update the player's x-coordinate based on the velocity
         }
 
         playerData.pos.y += velocity * deltaTime;  // Update the player's y-coordinate based on the velocity
