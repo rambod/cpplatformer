@@ -18,14 +18,13 @@ To run this project, you'll need:
 ## Installation
 
 1. Clone the repository:
-   ```bash
-   git clone [repository-url]
-   ```
+```
+git clone [repository-url]
+```
 2. Navigate to the project directory:
 ```
 cd [project-directory]
 ```
-
 3 .Create a build directory and navigate into it:
   ```
 mkdir build && cd build
