@@ -11,6 +11,23 @@ struct AnimData
     float runningTime;
 };
 
+bool isOnGround(const int screenHeight, const AnimData &playerData) {
+    return playerData.pos.y >= (float)screenHeight - playerData.rec.height;
+}
+
+AnimData &updateAnimData(AnimData &data, const float deltaTime, int maxFrame) {
+    data.runningTime += deltaTime;  // Add the delta time to the running time
+    if (data.runningTime >= data.updateTime) {  // Check if the running time is greater than or equal to the update time
+        data.runningTime = 0;  // Subtract the update time from the running time
+        data.rec.x = data.frame * data.rec.width;  // Update the x-coordinate of playerRec based on the frame and playerRec width
+        data.frame++;  // Increment the frame by 1
+        if (data.frame > maxFrame) {  // Check if the frame is greater than 5
+            data.frame = 0;  // Reset the frame to 0
+        }
+    }
+    return data;
+}
+
 int main() {
 
     // Textures
@@ -18,8 +35,8 @@ int main() {
     const char *nebulaTexturePath = "textures/12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
 
     // Game
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 750;
+    const int screenHeight = 550;
     InitWindow(screenWidth, screenHeight, "Platformer basics C++");  // Initialize the window with the specified screen width, screen height, and window title
 
     const int gravity{1'000};  // Define a constant variable gravity with a value of 1
@@ -43,7 +60,12 @@ int main() {
 
 
     // Background
-    Texture2D backgroundTexture = LoadTexture("textures/back-buildings.png");  // Load the background texture
+    Texture2D backgroundTexture = LoadTexture("textures/far-buildings.png");  // Load the background texture
+    Texture2D midgroundTexture = LoadTexture("textures/back-buildings.png");  // Load the background texture
+    Texture2D foregroundTexture = LoadTexture("textures/foreground.png");  // Load the background texture
+    float bgx{};  // Declare a float variable bgx and initialize it with 0
+    float midgx{};  // Declare a float variable midgx and initialize it with 0
+    float fgx{};  // Declare a float variable fgx and initialize it with 0
     Rectangle backgroundRec;  // Declare a variable backgroundRec of type Rectangle
     backgroundRec.width = screenWidth;  // Set the width of backgroundRec to the width of the background texture
     backgroundRec.height = screenHeight;  // Set the height of backgroundRec to the height of the background texture
@@ -54,7 +76,7 @@ int main() {
     Texture2D nebulaTexture = LoadTexture(nebulaTexturePath);  // Load the nebula texture
 
 
-    AnimData nebulae[20]{};
+    AnimData nebulae[3]{};
     for(int i = 0; i < std::size(nebulae); i++){
         nebulae[i].rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8};
         nebulae[i].pos = {(float)screenWidth + (300 * (float)i), screenHeight - (float)nebulaTexture.height / 8};
@@ -63,7 +85,10 @@ int main() {
         nebulae[i].updateTime = 1.0f / 16.0f;
     }
 
+    float finishLine{ nebulae[std::size(nebulae) - 1].pos.x };
+
     int nebVelocity{-200};  // Declare an integer variable nevVelocity and initialize it with -600
+    bool collision = false;
 
     SetTargetFPS(60);  // Set the target frames per second to 60
 
@@ -73,16 +98,44 @@ int main() {
         const float deltaTime = GetFrameTime();  // Get the delta time in seconds
         BeginDrawing();  // Begin drawing the graphics
 
-        DrawTextureRec(backgroundTexture, backgroundRec, Vector2{0.0f, 0.0f}, WHITE);
 
         ClearBackground(WHITE);  // Clear the background with the color white
 
+        // scroll background
+        bgx -= 20 * deltaTime;
+        Vector2 bg1{bgx, 0.0f};
+        DrawTextureEx(backgroundTexture,  bg1,0.0,3.0, WHITE);
+        Vector2 bg2{bgx + backgroundTexture.width * 3, 0.0f};
+        DrawTextureEx(backgroundTexture, bg2,0.0,3.0, WHITE);
+        if(bgx <= -backgroundTexture.width * 3){
+            bgx = 0;
+        }
+
+        // scroll midground
+        midgx -= 40 * deltaTime;
+        Vector2 midg1{midgx, 0.0f};
+        DrawTextureEx(midgroundTexture,  midg1,0.0,3.0, WHITE);
+        Vector2 midg2{midgx + midgroundTexture.width *3, 0.0f};
+        DrawTextureEx(midgroundTexture, midg2,0.0,3.0, WHITE);
+        if(midgx <= -midgroundTexture.width * 3){
+            midgx = 0;
+        }
+
+        // scroll foreground
+        fgx -= 80 * deltaTime;
+        Vector2 fg1{fgx, 0.0f};
+        DrawTextureEx(foregroundTexture,  fg1,0.0,3.0, WHITE);
+        Vector2 fg2{fgx + foregroundTexture.width * 3, 0.0f};
+        DrawTextureEx(foregroundTexture, fg2,0.0,3.0, WHITE);
+        if(fgx <= -foregroundTexture.width * 3){
+            fgx = 0;
+        }
+
         DrawFPS(10, 10);  // Draw the frames per second counter at position (10, 10)
 
-        DrawTextureRec(playerTexture,playerData.rec, playerData.pos, WHITE);  // Draw the player texture at the specified position and with the specified color
 
         //gravity
-        if (playerData.pos.y >= screenHeight - playerData.rec.height) {  // Check if the player's y-coordinate is on the ground
+        if (isOnGround(screenHeight, playerData)) {  // Check if the player's y-coordinate is on the ground
             velocity = 0;  // Set the velocity to 0
             bIsPlayerGrounded = true;  // Set bIsPlayerGrounded to true
             bIsPlayerJumping = false;  // Set bIsPlayerJumping to false
@@ -117,39 +170,61 @@ int main() {
 
         if(!bIsPlayerJumping){
             //update animation frame
-            playerData.runningTime += deltaTime;  // Add the delta time to the running time
-            if (playerData.runningTime >= playerData.updateTime) {  // Check if the running time is greater than or equal to the update time
-                playerData.runningTime = 0;  // Subtract the update time from the running time
-                playerData.rec.x = playerData.frame * playerData.rec.width;  // Update the x-coordinate of playerRec based on the frame and playerRec width
-                playerData.frame++;  // Increment the frame by 1
-                if (playerData.frame > 5) {  // Check if the frame is greater than 5
-                    playerData.frame = 0;  // Reset the frame to 0
-                }
+            playerData = updateAnimData(playerData, deltaTime,5);
+        }
+
+
+
+        for(AnimData & i : nebulae){
+            float pad{40};
+            Rectangle nebRec{
+                i.pos.x + pad,
+                i.pos.y + pad,
+                i.rec.width -  2 * pad,
+                i.rec.height - 2 * pad
+            };
+            Rectangle playerRec{
+                playerData.pos.x,
+                playerData.pos.y,
+                playerData.rec.width,
+                playerData.rec.height
+            };
+            if(CheckCollisionRecs( playerRec, nebRec)){
+                printf("Collision");
+                collision = true;
             }
         }
-
-        for(auto & i : nebulae){
+        if (collision){
+            // lose the game
+            DrawText("Game Over", screenWidth / 4, screenHeight / 2, 50, RED);
+        }
+        else if(playerData.pos.x >= finishLine){
+            // win the game
+            DrawText("You Win", screenWidth / 2, screenHeight / 2, 50, GREEN);
+        }
+        else{
+            // win the game
+            for(auto & i : nebulae){
                 DrawTextureRec(nebulaTexture, i.rec, i.pos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
+            }
+
+            DrawTextureRec(playerTexture,playerData.rec, playerData.pos, WHITE);  // Draw the player texture at the specified position and with the specified color
+
         }
 
-
-        for(auto & i : nebulae){
+        for(AnimData & i : nebulae){
             i.pos.x += (float)nebVelocity * deltaTime;
+
         }
+
+        finishLine += (float)nebVelocity * deltaTime;
 
         //nebula animation frame
         for(auto & i : nebulae){
-            i.runningTime += deltaTime;
-            if(i.runningTime >= i.updateTime){
-                i.runningTime = 0;
-                i.rec.x = i.frame * i.rec.width;
-                i.frame++;
-                if(i.frame > 7){
-                    i.frame = 0;
-
-                }
-            }
+            i = updateAnimData(i, deltaTime, 7);
         }
+
+
 
         EndDrawing();  // End drawing the graphics
     }
@@ -158,6 +233,9 @@ int main() {
     UnloadTexture(nebulaTexture);  // Unload the nebula texture
     UnloadTexture(backgroundTexture);  // Unload the nebula texture
     UnloadTexture(playerTexture);  // Unload the player texture
+    UnloadTexture(midgroundTexture);
+    UnloadTexture(foregroundTexture);
+
 
     // Close the window
     CloseWindow();
