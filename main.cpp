@@ -2,7 +2,6 @@
 #include <raylib.h> // Include the raylib library
 #include <iterator>
 
-
 struct AnimData
 {
     Rectangle rec;
@@ -55,17 +54,14 @@ int main() {
     Texture2D nebulaTexture = LoadTexture(nebulaTexturePath);  // Load the nebula texture
 
 
-    AnimData nebulae[3]{};
+    AnimData nebulae[20]{};
     for(int i = 0; i < std::size(nebulae); i++){
         nebulae[i].rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8};
-        nebulae[i].pos = {screenWidth, screenHeight - (float)nebulaTexture.height / 8};
+        nebulae[i].pos = {(float)screenWidth + (300 * (float)i), screenHeight - (float)nebulaTexture.height / 8};
         nebulae[i].frame = 0;
         nebulae[i].runningTime = 0.0f;
         nebulae[i].updateTime = 1.0f / 16.0f;
     }
-
-    nebulae[1].pos.x = screenWidth + 300;
-    nebulae[2].pos.x = screenWidth + 600;
 
     int nebVelocity{-200};  // Declare an integer variable nevVelocity and initialize it with -600
 
@@ -132,32 +128,35 @@ int main() {
             }
         }
 
-        //rwte for to loop inside nebulae by checking lenght of it
-//        for(int i=0 ; i < std::size(nebulae); i++){
-//
-//        }
+        for(auto & i : nebulae){
+                DrawTextureRec(nebulaTexture, i.rec, i.pos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
+        }
 
 
-        //draw
-        DrawTextureRec(nebulaTexture, nebulae[0].rec, nebulae[0].pos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
-        nebulae[0].pos.x += nebVelocity * deltaTime;  // Update the x-coordinate of nebPos based on the delta time
+        for(auto & i : nebulae){
+            i.pos.x += (float)nebVelocity * deltaTime;
+        }
 
         //nebula animation frame
-        nebulae[0].runningTime += deltaTime;
-        if(nebulae[0].runningTime >= nebulae[0].updateTime){
-            nebulae[0].runningTime = 0;
-            nebulae[0].rec.x = nebulae[0].frame * nebulae[0].rec.width;
-            nebulae[0].frame++;
-            if(nebulae[0].frame > 7){
-                nebulae[0].frame = 0;
+        for(auto & i : nebulae){
+            i.runningTime += deltaTime;
+            if(i.runningTime >= i.updateTime){
+                i.runningTime = 0;
+                i.rec.x = i.frame * i.rec.width;
+                i.frame++;
+                if(i.frame > 7){
+                    i.frame = 0;
 
+                }
             }
         }
+
         EndDrawing();  // End drawing the graphics
     }
 
     // Unload
     UnloadTexture(nebulaTexture);  // Unload the nebula texture
+    UnloadTexture(backgroundTexture);  // Unload the nebula texture
     UnloadTexture(playerTexture);  // Unload the player texture
 
     // Close the window
