@@ -1,5 +1,7 @@
 #include <iostream>  // Include the input/output stream library
 #include <raylib.h> // Include the raylib library
+#include <iterator>
+
 
 struct AnimData
 {
@@ -13,7 +15,6 @@ struct AnimData
 int main() {
 
     // Textures
-//    const char *playerTexturePath = "C:\\Users\\Rambod\\CLionProjects\\cpplatformer\\textures\\scarfy.png";  // Define a string variable playerTexturePath with a value of "textures/player.png"
     const char* playerTexturePath = "textures/scarfy.png";
     const char *nebulaTexturePath = "textures/12_nebula_spritesheet.png";  // Define a string variable nebulaTexturePath with a value of "textures/nebula.png"
 
@@ -30,17 +31,14 @@ int main() {
     int velocity{0};  // Declare an integer variable velocity and initialize it with 0
 
     Texture2D playerTexture = LoadTexture(playerTexturePath);  // Load the player texture
-    AnimData playerData;  // Declare a variable playerData of type AnimData
-    playerData.rec.width = playerTexture.width / 6;  // Set the width of playerData.rec to 20
-    playerData.rec.height = playerTexture.height;  // Set the height of playerData.rec to 20
-    playerData.rec.x = 0;  // Set the x-coordinate of playerData.rec to 0
-    playerData.rec.y = 0;  // Set the y-coordinate of playerData.rec to 0
-    playerData.pos.x = screenWidth / 2 - playerData.rec.width / 2;  // Calculate the x-coordinate of playerData.pos based on the screen width and playerData.rec width
-    playerData.pos.y = screenHeight - playerData.rec.height;  // Calculate the y-coordinate of playerData.pos based on the screen height and playerData.rec height
-    playerData.frame = 0;  // Set the frame of playerData to 0
-    playerData.updateTime = 1.0f / 12.0f;  // Set the update time of playerData to 1.0f / 12.0f
-    playerData.runningTime = 0.0f;
+    AnimData playerData{
+        .rec = {0, 0, (float)playerTexture.width / 6, (float)playerTexture.height},
+        .pos = {0, 0},
+        .frame = 0,
+        .updateTime = 1.0f / 12.0f,
+        .runningTime = 0.0f
 
+    };  // Declare a variable playerData of type AnimData
     bool bIsPlayerGrounded{true};  // Declare a boolean variable bIsPlayerGrounded and initialize it with true
     bool bIsPlayerJumping{false};  // Declare a boolean variable bIsPlayerJumping and initialize it with false
 
@@ -56,42 +54,26 @@ int main() {
     // Nebula
     Texture2D nebulaTexture = LoadTexture(nebulaTexturePath);  // Load the nebula texture
 
-    AnimData nebData{
-            .rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8},
-            .pos = {screenWidth, screenHeight - (float)nebulaTexture.height / 8},
-            .frame = 0,
-            .updateTime = 1.0f / 12.0f,
-            .runningTime = 0.0f
-    };
-    AnimData neb2Data{
-            .rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8},
-            .pos = {screenWidth + 300, screenHeight - (float)nebulaTexture.height / 8},
-            .frame = 0,
-            .updateTime = 1.0f / 12.0f,
-            .runningTime = 0.0f
-    };
-//    Rectangle nebRec;  // Declare a variable nebRec of type Rectangle
-//    nebRec.width = nebulaTexture.width / 8;  // Set the width of nebRec to the screen width
-//    nebRec.height = nebulaTexture.height / 8;  // Set the height of nebRec to the screen height
-//    nebRec.x = 0.0f;  // Set the x-coordinate of nebRec to 0
-//    nebRec.y = 0.0f;  // Set the y-coordinate of nebRec to 0
-//
-//    Vector2 nebPos;  // Declare a variable nebPos of type Vector2 and initialize it with (0.0f, 0.0f)
-//    nebPos.x = screenWidth;  // Calculate the x-coordinate of nebPos based on the screen width and nebRec width
-//    nebPos.y = screenHeight - nebRec.height;  // Calculate the y-coordinate of nebPos based on the screen height and nebRec height
-//    int nebFrame{0};  // Declare an integer variable nebFrame and initialize it with 0
-    int nebVelocity{-200};  // Declare an integer variable nevVelocity and initialize it with -600
-//    float nubRunningTime{0.0f};  // Declare a float variable nubRunningTime and initialize it with 0.0f
-//    float nubUpdateTime{0.12f};  // Declare a float variable nubUpdateTime and initialize it with 0.12f
 
+    AnimData nebulae[3]{};
+    for(int i = 0; i < std::size(nebulae); i++){
+        nebulae[i].rec = {0.0f, 0.0f, (float) nebulaTexture.width / 8, (float) nebulaTexture.height / 8};
+        nebulae[i].pos = {screenWidth, screenHeight - (float)nebulaTexture.height / 8};
+        nebulae[i].frame = 0;
+        nebulae[i].runningTime = 0.0f;
+        nebulae[i].updateTime = 1.0f / 16.0f;
+    }
+
+    nebulae[1].pos.x = screenWidth + 300;
+    nebulae[2].pos.x = screenWidth + 600;
+
+    int nebVelocity{-200};  // Declare an integer variable nevVelocity and initialize it with -600
 
     SetTargetFPS(60);  // Set the target frames per second to 60
 
     while (!WindowShouldClose()) {  // Start a loop that runs until the window is closed
 
-
         //update
-
         const float deltaTime = GetFrameTime();  // Get the delta time in seconds
         BeginDrawing();  // Begin drawing the graphics
 
@@ -101,7 +83,6 @@ int main() {
 
         DrawFPS(10, 10);  // Draw the frames per second counter at position (10, 10)
 
-       // DrawRectangle(playerPos.x, playerPos.y, playerRec.width, playerRec.height, RED);  // Draw a rectangle representing the player at the specified position and with the specified width, height, and color
         DrawTextureRec(playerTexture,playerData.rec, playerData.pos, WHITE);  // Draw the player texture at the specified position and with the specified color
 
         //gravity
@@ -143,29 +124,36 @@ int main() {
             }
         }
 
+        //rwte for to loop inside nebulae by checking lenght of it
+//        for(int i=0 ; i < std::size(nebulae); i++){
+//
+//        }
+
 
         //draw
-        DrawTextureRec(nebulaTexture, neb2Data.rec, neb2Data.pos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
-        neb2Data.pos.x += nebVelocity * deltaTime;  // Update the x-coordinate of nebPos based on the delta time
+        DrawTextureRec(nebulaTexture, nebulae[0].rec, nebulae[0].pos, WHITE);  // Draw the nebula texture at the specified position and with the specified color
+        nebulae[0].pos.x += nebVelocity * deltaTime;  // Update the x-coordinate of nebPos based on the delta time
 
         //nebula animation frame
-        neb2Data.runningTime += deltaTime;
-        if(neb2Data.runningTime >= neb2Data.updateTime){
-            neb2Data.runningTime = 0;
-            neb2Data.rec.x = neb2Data.frame * neb2Data.rec.width;
-            neb2Data.frame++;
-            if(neb2Data.frame > 7){
-                neb2Data.frame = 0;
+        nebulae[0].runningTime += deltaTime;
+        if(nebulae[0].runningTime >= nebulae[0].updateTime){
+            nebulae[0].runningTime = 0;
+            nebulae[0].rec.x = nebulae[0].frame * nebulae[0].rec.width;
+            nebulae[0].frame++;
+            if(nebulae[0].frame > 7){
+                nebulae[0].frame = 0;
 
             }
         }
         EndDrawing();  // End drawing the graphics
     }
 
-    //unload
+    // Unload
     UnloadTexture(nebulaTexture);  // Unload the nebula texture
     UnloadTexture(playerTexture);  // Unload the player texture
-    CloseWindow();  // Close the window
+
+    // Close the window
+    CloseWindow();
 
     return 0;  // Return 0 to indicate successful program termination
 }
